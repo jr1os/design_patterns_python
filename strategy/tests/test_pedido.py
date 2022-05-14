@@ -1,6 +1,6 @@
 from decimal import Decimal
-from pedido import Item
-from pedido import Pedido, DescontoItemRepetido
+from strategy.pedido import Item, Pedido
+from strategy.promocao import (desconto_item_repetido, desconto_grande_pedido)
 import pytest
 
 
@@ -44,6 +44,24 @@ def test_total_sem_promocao(pedido_item_repedito):
     assert Decimal('1000.00') == pedido_item_repedito.total()
 
 
-def test_total_com_promocao(pedido_item_repedito):
-    desconto = DescontoItemRepetido()
-    assert Decimal('900.00') == pedido_item_repedito.total(desconto)
+def test_total_com_desconto_por_item_repetido(pedido_item_repedito):
+    assert Decimal('900.00') == pedido_item_repedito.total(desconto_item_repetido)
+
+
+def test_total_sem_desconto_por_item_repetido():
+    pedido = Pedido()
+    pedido.adicionar(Item('Mac', Decimal('100.00'), 9))
+
+    assert Decimal('900.00') == pedido.total(desconto_item_repetido)
+
+
+def test_total_com_desconto_pedido_grande():
+    pedido = Pedido()
+    pedido.adicionar(Item('Mac', Decimal('10000.00'), 1))
+    assert Decimal('9500.00') == pedido.total(desconto_grande_pedido)
+
+
+def test_total_sem_desconto_pedido_grande():
+    pedido = Pedido()
+    pedido.adicionar(Item('Mac', Decimal('9999.99'), 1))
+    assert Decimal('9999.99') == pedido.total(desconto_grande_pedido)
